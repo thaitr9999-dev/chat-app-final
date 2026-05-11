@@ -34,7 +34,7 @@ build/
 
 ### Application Configuration ###
 # Never commit application properties containing secrets
-application.properties
+# application.properties
 *.env
 .env.local
 .env.*.local
