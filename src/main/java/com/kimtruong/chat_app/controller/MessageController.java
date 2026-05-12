@@ -19,7 +19,7 @@ public class MessageController {
         this.messageService = messageService;
     }
 
-    @GetMapping("/messages")
+    @GetMapping("/messages/history")
     public  List<ChatMessage> getLast50() {
         return messageService.getLast50();
     }

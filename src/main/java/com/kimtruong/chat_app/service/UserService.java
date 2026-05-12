@@ -45,8 +45,8 @@ public class UserService {
         user.setRole(User.Role.USER);//day13
         userRepository.save(user);
 
-        String token = jwtUtil.generateToken(user.getUserName());
-        return new AuthResponse(token, user.getUserName());
+        String token = jwtUtil.generateToken(user.getUsername());
+        return new AuthResponse(token, user.getUsername());
     }
 
     /**
@@ -65,7 +65,7 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sai username hoặc password");
         }
 
-        String token = jwtUtil.generateToken(user.getUserName());
-        return new AuthResponse(token, user.getUserName());
+        String token = jwtUtil.generateToken(user.getUsername());
+        return new AuthResponse(token, user.getUsername());
     }
 }

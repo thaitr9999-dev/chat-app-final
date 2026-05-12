@@ -28,9 +28,10 @@ public class User {
     public Long getId() {
         return id;
     }
-    public String getUserName() {
+    public String getUsername() {
         return username;
     }
+    
 
     public String getPassword() {
         return password;

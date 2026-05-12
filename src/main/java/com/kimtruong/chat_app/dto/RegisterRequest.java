@@ -1,6 +1,9 @@
 package com.kimtruong.chat_app.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class RegisterRequest {
+    @JsonProperty("userName")
     private String username;
     private String password;
 

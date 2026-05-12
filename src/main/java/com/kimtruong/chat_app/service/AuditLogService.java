@@ -21,10 +21,12 @@ public class AuditLogService {
      * @param ipAddress the client IP address
      * @param detail additional details about the action
      */
-    public void log(String username, String action, String ipAddress, String detail) {
-        AuditLog auditLog = new AuditLog(username, action, ipAddress, detail);
-        auditLogRepository.save(auditLog);
-    }
+public void log(String username, String action, String ipAddress, String detail) {
+    // Default to "ANONYMOUS" if username is null (e.g., during registration before auth)
+    String safeUsername = (username != null) ? username : "ANONYMOUS";
+    AuditLog auditLog = new AuditLog(safeUsername, action, ipAddress, detail);
+    auditLogRepository.save(auditLog);
+}
 
     /**
      * Retrieve the most recent 20 audit log entries.
