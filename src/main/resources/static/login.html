@@ -6,11 +6,15 @@
     <title>Login - Chat App</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-      body { min-height:100vh; display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); }
-      .card { width:100%; max-width:420px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.2); overflow:hidden; }
-      .slide-up { animation: slideUp 600ms ease both; }
+      :root{--cyan:#00d4ff;--dark:#042a2b}
+      body { min-height:100vh; display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg,#022b2b 0%,#001518 100%); color:#e6fbff }
+      .card { width:100%; max-width:480px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.5); background:linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.45)); border:1px solid rgba(0,212,255,0.12)}
+      .nav-tabs .nav-link.active{background:transparent;border-bottom:2px solid var(--cyan);color:var(--cyan)}
+      .form-control{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:#e6fbff}
+      .btn-primary{background:var(--cyan);border-color:var(--cyan)}
+      .slide-up { animation: slideUp 520ms ease both; }
       @keyframes slideUp { from { transform: translateY(12px); opacity:0 } to { transform: translateY(0); opacity:1 } }
-      .form-error { display:none }
+      .alert { opacity:0.95 }
     </style>
   </head>
   <body>
@@ -82,20 +86,21 @@
         const div = document.createElement('div');
         div.innerHTML = `<div id="${id}" class="alert alert-${type} alert-dismissible fade show" role="alert">${message}</div>`;
         document.getElementById('alerts').appendChild(div);
-        setTimeout(()=>{ const el = document.getElementById(id); if(el) el.classList.remove('show'); if(el) el.remove(); },5000);
+        setTimeout(()=>{ const el = document.getElementById(id); if(el) el.remove(); },5000);
       }
 
-      // Login
+      // Login (calls /api/auth/login)
       document.getElementById('loginForm').addEventListener('submit', async (e)=>{
         e.preventDefault();
         const u=document.getElementById('login-username');
         const p=document.getElementById('login-password');
-        if(!u.checkValidity()||!p.checkValidity()){ u.classList.add('is-invalid'); p.classList.add('is-invalid'); return; }
+        u.classList.remove('is-invalid'); p.classList.remove('is-invalid');
+        if(!u.checkValidity()||!p.checkValidity()){ if(!u.checkValidity()) u.classList.add('is-invalid'); if(!p.checkValidity()) p.classList.add('is-invalid'); return; }
 
         try {
           const res = await fetch('/auth/login', {
             method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ userName: u.value, password: p.value })
+            body: JSON.stringify({ username: u.value, password: p.value })
           });
           if(!res.ok) { const t = await res.text(); showAlert('Login failed: '+t); return; }
           const data = await res.json();
@@ -106,33 +111,28 @@
         } catch(err){ showAlert('Network error'); console.error(err); }
       });
 
-      // Register
+      // Register (calls /api/auth/register)
       document.getElementById('registerForm').addEventListener('submit', async (e)=>{
         e.preventDefault();
         const u=document.getElementById('reg-username');
         const p=document.getElementById('reg-password');
         const c=document.getElementById('reg-confirm');
-        if(!u.checkValidity()||!p.checkValidity()||!c.checkValidity()){ u.classList.add('is-invalid'); p.classList.add('is-invalid'); c.classList.add('is-invalid'); return; }
+        u.classList.remove('is-invalid'); p.classList.remove('is-invalid'); c.classList.remove('is-invalid');
+        if(!u.checkValidity()||!p.checkValidity()||!c.checkValidity()){ if(!u.checkValidity()) u.classList.add('is-invalid'); if(!p.checkValidity()) p.classList.add('is-invalid'); if(!c.checkValidity()) c.classList.add('is-invalid'); return; }
         if(p.value !== c.value){ document.getElementById('confirmFeedback').innerText='Passwords must match.'; c.classList.add('is-invalid'); return; }
 
         try {
           const res = await fetch('/auth/register', {
             method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ userName: u.value, password: p.value })
+            body: JSON.stringify({ username: u.value, password: p.value })
           });
           if(!res.ok){ const t = await res.text(); showAlert('Register failed: '+t); return; }
-          showAlert('Registration successful. Logging in...', 'success');
-          // auto-login
-          setTimeout(()=>{
-            document.getElementById('login-username').value = u.value;
-            document.getElementById('login-password').value = p.value;
-            document.querySelector('#login-tab').click();
-            document.getElementById('loginBtn').click();
-          },800);
+          showAlert('Registration successful. Redirecting to login...', 'success');
+          setTimeout(()=>{ document.querySelector('#login-tab').click(); document.getElementById('login-username').value = u.value; document.getElementById('login-password').value = p.value; },800);
         } catch(err){ showAlert('Network error'); console.error(err); }
       });
 
-      // Click handler to trigger login button programmatically
+      // wire buttons
       document.getElementById('loginBtn').addEventListener('click', (e)=>{ e.preventDefault(); document.getElementById('loginForm').dispatchEvent(new Event('submit',{cancelable:true})); });
       document.getElementById('registerBtn').addEventListener('click', (e)=>{ e.preventDefault(); document.getElementById('registerForm').dispatchEvent(new Event('submit',{cancelable:true})); });
     </script>
