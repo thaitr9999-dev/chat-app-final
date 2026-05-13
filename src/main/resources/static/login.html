@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login - Chat App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      body { min-height:100vh; display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); }
+      .card { width:100%; max-width:420px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.2); overflow:hidden; }
+      .slide-up { animation: slideUp 600ms ease both; }
+      @keyframes slideUp { from { transform: translateY(12px); opacity:0 } to { transform: translateY(0); opacity:1 } }
+      .form-error { display:none }
+    </style>
+  </head>
+  <body>
+    <div class="card slide-up">
+      <div class="card-body p-4">
+        <h4 class="mb-3 text-center">Chat App</h4>
+        <ul class="nav nav-tabs mb-3" id="authTabs" role="tablist">
+          <li class="nav-item" role="presentation"><button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button">Login</button></li>
+          <li class="nav-item" role="presentation"><button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button">Register</button></li>
+        </ul>
+
+        <div id="alerts"></div>
+
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="login">
+            <form id="loginForm" novalidate>
+              <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input id="login-username" class="form-control" required minlength="3">
+                <div class="invalid-feedback">Enter a username (min 3).</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input id="login-password" type="password" class="form-control" required minlength="6">
+                <div class="invalid-feedback">Password must be at least 6 characters.</div>
+              </div>
+              <div class="d-grid">
+                <button id="loginBtn" class="btn btn-primary">Login</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="tab-pane fade" id="register">
+            <form id="registerForm" novalidate>
+              <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input id="reg-username" class="form-control" required minlength="3">
+                <div class="invalid-feedback">Choose a username (min 3).</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input id="reg-password" type="password" class="form-control" required minlength="6">
+                <div class="invalid-feedback">Password must be at least 6 characters.</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Confirm Password</label>
+                <input id="reg-confirm" type="password" class="form-control" required minlength="6">
+                <div class="invalid-feedback" id="confirmFeedback">Passwords must match.</div>
+              </div>
+              <div class="d-grid">
+                <button id="registerBtn" class="btn btn-outline-light">Register</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Redirect if already logged in
+      const token = localStorage.getItem('token');
+      if (token) {
+        window.location.href = '/chat.html';
+      }
+
+      function showAlert(message, type='danger'){
+        const id = 'a'+Date.now();
+        const div = document.createElement('div');
+        div.innerHTML = `<div id="${id}" class="alert alert-${type} alert-dismissible fade show" role="alert">${message}</div>`;
+        document.getElementById('alerts').appendChild(div);
+        setTimeout(()=>{ const el = document.getElementById(id); if(el) el.classList.remove('show'); if(el) el.remove(); },5000);
+      }
+
+      // Login
+      document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const u=document.getElementById('login-username');
+        const p=document.getElementById('login-password');
+        if(!u.checkValidity()||!p.checkValidity()){ u.classList.add('is-invalid'); p.classList.add('is-invalid'); return; }
+
+        try {
+          const res = await fetch('/auth/login', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ userName: u.value, password: p.value })
+          });
+          if(!res.ok) { const t = await res.text(); showAlert('Login failed: '+t); return; }
+          const data = await res.json();
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('username', u.value);
+          showAlert('Login successful. Redirecting...', 'success');
+          setTimeout(()=> window.location.href = '/chat.html', 1500);
+        } catch(err){ showAlert('Network error'); console.error(err); }
+      });
+
+      // Register
+      document.getElementById('registerForm').addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const u=document.getElementById('reg-username');
+        const p=document.getElementById('reg-password');
+        const c=document.getElementById('reg-confirm');
+        if(!u.checkValidity()||!p.checkValidity()||!c.checkValidity()){ u.classList.add('is-invalid'); p.classList.add('is-invalid'); c.classList.add('is-invalid'); return; }
+        if(p.value !== c.value){ document.getElementById('confirmFeedback').innerText='Passwords must match.'; c.classList.add('is-invalid'); return; }
+
+        try {
+          const res = await fetch('/auth/register', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ userName: u.value, password: p.value })
+          });
+          if(!res.ok){ const t = await res.text(); showAlert('Register failed: '+t); return; }
+          showAlert('Registration successful. Logging in...', 'success');
+          // auto-login
+          setTimeout(()=>{
+            document.getElementById('login-username').value = u.value;
+            document.getElementById('login-password').value = p.value;
+            document.querySelector('#login-tab').click();
+            document.getElementById('loginBtn').click();
+          },800);
+        } catch(err){ showAlert('Network error'); console.error(err); }
+      });
+
+      // Click handler to trigger login button programmatically
+      document.getElementById('loginBtn').addEventListener('click', (e)=>{ e.preventDefault(); document.getElementById('loginForm').dispatchEvent(new Event('submit',{cancelable:true})); });
+      document.getElementById('registerBtn').addEventListener('click', (e)=>{ e.preventDefault(); document.getElementById('registerForm').dispatchEvent(new Event('submit',{cancelable:true})); });
+    </script>
+  </body>
+</html>
