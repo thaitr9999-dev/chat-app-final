@@ -560,8 +560,9 @@
 
     // ── WEBSOCKET ──
     function connectWs() {
+      const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
       const client = new StompJs.Client({
-        brokerURL: `ws://${location.host}/ws?token=${token}`,
+        brokerURL: `${wsProtocol}//${location.host}/ws?token=${token}`,
         connectHeaders: { token: token },
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,

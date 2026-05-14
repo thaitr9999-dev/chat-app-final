@@ -16,7 +16,7 @@ View workflow: https://github.com/thaitr9999-dev/java-chat-app/actions
 ## Deployment
 
 ### Production (Render)
-- **URL**: https://your-app.onrender.com
+- **URL**: https://chat-app-final-5i37.onrender.com
 - **Auto-deploy**: Every push to `main` triggers deployment
 - **Database**: PostgreSQL 15 (managed by Render)
 
